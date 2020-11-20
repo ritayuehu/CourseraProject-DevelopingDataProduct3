@@ -1,0 +1,167 @@
+---
+title: "Brazilian Demoghaphics"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    social: menu
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(leaflet)
+library(ggplot2)
+library(mgcv)
+
+# Load dataset
+br_demographics <- read.csv("BRAZIL_CITIES.csv", header = TRUE, sep = ";")
+
+```
+
+Inputs {.sidebar}
+=======================================================================
+
+```{r}
+
+states <- names(table(br_demographics$STATE))
+states <- append(states,"All", length(states))
+
+
+selectInput("state", "State", states, selected = "All", multiple = FALSE)
+
+sliderInput("population", "Population", min=min(br_demographics$IBGE_RES_POP, na.rm = TRUE), max=max(br_demographics$IBGE_RES_POP, na.rm = TRUE), value=c(min(br_demographics$IBGE_RES_POP, na.rm = TRUE),max(br_demographics$IBGE_RES_POP, na.rm = TRUE)), step = 1000)
+
+sliderInput("idh", "IDH", min = min(br_demographics$IDHM, na.rm = TRUE), max=max(br_demographics$IDHM, na.rm = TRUE), value=c(min(br_demographics$IDHM, na.rm = TRUE),max(br_demographics$IDHM, na.rm = TRUE)), step = 0.001)
+
+sliderInput("companies", "Companies", min = min(br_demographics$COMP_TOT, na.rm = TRUE), max=max(br_demographics$COMP_TOT, na.rm = TRUE), value = c(min(br_demographics$COMP_TOT, na.rm = TRUE),max(br_demographics$COMP_TOT, na.rm = TRUE)), step = 1)
+
+sliderInput("gdp", "GDP", min = min(br_demographics$GDP, na.rm = TRUE), max=max(br_demographics$GDP, na.rm = TRUE), value = c(min(br_demographics$GDP, na.rm = TRUE),max(br_demographics$GDP, na.rm=TRUE)), step = 1)
+
+
+```
+
+Dashboard
+=====================================
+
+```{r}
+
+mapState <- reactive({
+   if(input$state != "All"){
+        subset(br_demographics, STATE == input$state)
+   } else {
+        br_demographics 
+   }
+})
+
+
+mapPeople <- reactive({
+     subset(mapState(), (IBGE_RES_POP >= input$population[1] & IBGE_RES_POP <= input$population[2]))
+})
+
+
+
+mapIDH <- reactive({
+     subset(mapPeople(), (IDHM >= input$idh[1] & IDHM <= input$idh[2]))
+})
+
+mapCompanies <- reactive({
+     subset(mapIDH(), (COMP_TOT >= input$companies[1] & COMP_TOT <= input$companies[2]))
+})
+
+mapGDP <- reactive({
+     subset(mapCompanies(), (GDP >= input$gdp[1] & GDP <= input$gdp[2]))
+})
+
+```
+
+Row
+-------------------------------------
+
+### Total Population {.value-box}
+
+```{r}
+# Emit the download rate
+renderValueBox({
+  valueBox(
+    value = sum(mapGDP()$IBGE_RES_POP),
+    icon = "fa-users",
+    color = "primary"
+  )
+})
+
+```
+
+
+### Companies {.value-box}
+
+```{r}
+# Emit the download rate
+renderValueBox({
+  valueBox(
+    value = sum(mapGDP()$COMP_TOT),
+    icon = "fa-money",
+    color = "green"
+  )
+})
+
+```
+
+
+### IDH Range {.value-box}
+
+```{r}
+# Emit the download rate
+renderValueBox({
+  valueBox(
+    value = paste(min(mapGDP()$IDHM), " - ",max(mapGDP()$IDHM)),
+    icon = "fa-heartbeat",
+    color = "Orange"
+  )
+})
+
+```
+
+
+### GDP Range {.value-box}
+
+```{r}
+# Emit the download rate
+renderValueBox({
+  valueBox(
+    value = paste(min(mapGDP()$GDP), " - ",max(mapGDP()$GDP)),
+    icon = "fa-line-chart",
+    color = "brown"
+  )
+})
+
+```
+
+
+
+Row
+------------------------------------
+   
+### Map
+
+```{r}
+
+renderLeaflet({
+
+     if(nrow(mapGDP()) == 0){
+          return(NULL)
+     }
+     
+     
+     leaflet(mapGDP()) %>%
+          addTiles() %>%
+          addCircles(weight = 2, radius = sqrt(mapGDP()$IBGE_RES_POP) * 30, popup = 
+               paste("<b>City: </b>", mapGDP()$CITY, " - ", mapGDP()$STATE, "<br>",
+                     "<b>Population: </b>",mapGDP()$IBGE_RES_POP, "<br>",
+                     "<b>IDH:</b>", mapGDP()$IDHM, "<br>",
+                     "<b>Companies: </b>", mapGDP()$COMP_TOT, "<br>",
+                     "<b>GDP: </b>", mapGDP()$GDP), 
+               group="int")
+
+})
+
+```  

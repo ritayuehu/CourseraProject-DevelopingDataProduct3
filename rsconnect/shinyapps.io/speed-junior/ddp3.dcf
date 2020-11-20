@@ -5,6 +5,6 @@ account: speed-junior
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 3269118
-bundleId: 3885523
+bundleId: 3885773
 url: https://speed-junior.shinyapps.io/ddp3/
-when: 1605889781.58966
+when: 1605894104.30494

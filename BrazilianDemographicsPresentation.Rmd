@@ -1,0 +1,84 @@
+---
+title: "Brazilian Demographic Project"
+author: "Expedito Pinto de Paula Junior"
+date: "11/20/2020"
+output: slidy_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Context
+
+Brazil is the world's fifth-largest country by area, with 8.5 million square kilometer, and the fifth most populous, with over 208 million people.
+
+The Federative Republic of Brazil is composed of the union of the 26 states, the Federal District, and the 5,570 municipalities.
+
+This dataset is a compilation of several publicly available information about Brazilian Municipalities.
+
+## Synoposis
+
+The objectives of this project are:
+
+1. Analyse Brazilian demoghaphics information based in population size, IDH (Human Development Index), Number of Companies and Gross Development Product.
+2. Use map based visualization to analyse data.
+3. Enable user self capability to analyse and visualize data.
+
+## Brazilian Cities Dataset
+
+The Dataset created by **Cristiana Parada** in Version 7.
+
+The data was retrieved from several websites, processed and merged all data by city name, resulting in 79 fields for every city.
+
+The Dataset is available in link bellow:
+
+[Brazilian Cities Dataset](https://www.kaggle.com/crisparada/brazilian-cities)
+
+
+## Brazilian Demographics Dashboard
+
+The [Brazilian Demographics Dashboard](https://speed-junior.shinyapps.io/ddp3) it was developed using **shiny** apps, **flexdashboard** library and **leafleat** maps.
+
+In the Tab Help it's possible to find more information about how to use the App and General Information about version and author.
+
+## HDI Education Index VS HDI GNI Index in all cities in Brazil
+
+```{r plot1, message=FALSE, warning=FALSE}
+library(plotly)
+library(ggplot2)
+brcities <- read.csv("BRAZIL_CITIES.csv", header = TRUE, sep = ";")
+fig <- plot_ly(brcities,x=~IDHM_Educacao, y=~IDHM_Renda, type = "scatter", color = ~STATE, mode = "markers", marker = list(opacity = 0.7) ,text = ~paste("City:", CITY))
+fig
+```
+
+## HDI Education Index VS HDI GNI Index in all cities in Brazil
+
+```{r plot2, message=FALSE, warning=FALSE}
+fig2 <- plot_ly(brcities,x=~IDHM_Educacao, y=~IDHM_Renda, type = "scatter", color = ~CAPITAL, mode = "markers", marker = list(opacity = 0.5), text = ~paste("City:", CITY))
+fig2
+```
+
+## Some Findings
+
+### The 5 best cities in relation btw HDI and GNI are: 
+     1. São Caetano do Sul
+     2. Niterói
+     3. Vitoria
+     4. Florianópolis
+     5. Santos
+
+### The 5 Best Capitals in relation btm HDI and GNI are:
+     1. Vitória
+     2. Florianópolis
+     3. Brasilia
+     4. Curitiba
+     5. Belo Horizonte
+
+
+## Conclusion
+
+* Analysing Brazilian demoghaphics information is possible to understand that most of the IDHs, GDPs and amount of companies are near the big cities.
+* Most of the cities in Brazil has less than 400,000 people.
+* The GDP Range is to large as IDH Range this impacts in growing planing for the country.
+* Based in the Dataset, several further analysis are possible to be realized.
